@@ -2,6 +2,7 @@ import Link from "next/link";
 import Hero from "@/components/Hero";
 import StatsBar from "@/components/StatsBar";
 import ProgramsGrid from "@/components/ProgramsGrid";
+import EventsGallery from "@/components/EventsGallery";
 import PartnersStrip from "@/components/PartnersStrip";
 import TeamGrid from "@/components/TeamGrid";
 
@@ -59,6 +60,7 @@ export default function Home() {
       </section>
 
       <ProgramsGrid />
+      <EventsGallery />
 
       {/* Jobs CTA dual */}
       <section className="py-16">

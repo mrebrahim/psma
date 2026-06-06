@@ -65,18 +65,61 @@ export const PROGRAMS = [
 ];
 
 export const TEAM = [
-  { name: "رئيس مجلس الأمناء", role: "رئيس مجلس الأمناء" },
-  { name: "نائب رئيس مجلس الأمناء", role: "نائب رئيس مجلس الأمناء" },
-  { name: "رئيس مجلس الإدارة", role: "رئيس مجلس الإدارة" },
-  { name: "نائب رئيس مجلس الإدارة", role: "نائب رئيس مجلس الإدارة" },
-  { name: "المدير التنفيذي", role: "المدير التنفيذي" },
-  { name: "أمين الصندوق", role: "أمين الصندوق" },
-  { name: "أمين السر", role: "أمين السر" },
-  { name: "مدير لجنة التوظيف", role: "رئيس لجنة ملتقيات التوظيف" },
-  { name: "مدير لجنة التدريب", role: "رئيس لجنة التدريب" },
-  { name: "مدير لجنة ريادة الأعمال", role: "رئيس لجنة ريادة الأعمال" },
-  { name: "مدير لجنة الإعلام", role: "رئيس لجنة الإعلام والاتصال" },
-  { name: "مدير لجنة الشراكات", role: "رئيس لجنة الشراكات والرعاية" },
+  { name: "د. أحمد عبد العزيز", role: "رئيس مجلس الأمناء", photo: "" },
+  { name: "أ. محمود السيد", role: "نائب رئيس مجلس الأمناء", photo: "" },
+  { name: "م. كريم فؤاد", role: "رئيس مجلس الإدارة", photo: "" },
+  { name: "د. هدى إبراهيم", role: "نائب رئيس مجلس الإدارة", photo: "" },
+  { name: "أ. شريف منصور", role: "المدير التنفيذي", photo: "" },
+  { name: "أ. منى عبدالله", role: "أمين الصندوق", photo: "" },
+  { name: "أ. محمد الأحمدي", role: "أمين السر", photo: "" },
+  { name: "أ. مينا عماد", role: "رئيس لجنة ملتقيات التوظيف", photo: "" },
+  { name: "د. ياسمين علي", role: "رئيس لجنة التدريب", photo: "" },
+  { name: "م. عمرو سامي", role: "رئيس لجنة ريادة الأعمال", photo: "" },
+  { name: "أ. نهى زكي", role: "رئيس لجنة الإعلام والاتصال", photo: "" },
+  { name: "أ. بيشوي صموئيل", role: "رئيس لجنة الشراكات والرعاية", photo: "" },
+];
+
+export const EVENTS_PAST = [
+  {
+    title: "ملتقى Job Hub الأول — شبرا الخيمة",
+    date: "22 مارس 2025",
+    location: "مطرانية شبرا الخيمة",
+    companies: 50,
+    jobs: 2400,
+    applications: 1300,
+    training: 1000,
+    image: "/images/event-jobhub-shobra.jpg",
+  },
+  {
+    title: "ملتقى Job Hub الثاني — شبرا الجنوبية",
+    date: "17 مايو 2025",
+    location: "نادي الشرق شبرا الجنوبية",
+    companies: 47,
+    jobs: 1300,
+    applications: 900,
+    training: 1000,
+    image: "/images/event-ministry.jpg",
+  },
+  {
+    title: "ملتقى Job Hub الثالث — 6 أكتوبر",
+    date: "4 أكتوبر 2025",
+    location: "مطرانية 6 أكتوبر",
+    companies: 76,
+    jobs: 6300,
+    applications: 2200,
+    training: 1070,
+    image: "/images/event-jobhub4.jpg",
+  },
+  {
+    title: "ملتقى Job Hub الرابع — حلوان",
+    date: "6 ديسمبر 2025",
+    location: "دير الأنبا برسوم — حلوان",
+    companies: 80,
+    jobs: 9000,
+    applications: 5000,
+    training: 5000,
+    image: "/images/event-jobhub4.jpg",
+  },
 ];
 
 export const PARTNERS = [

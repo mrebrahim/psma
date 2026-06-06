@@ -1,17 +1,23 @@
 import Link from "next/link";
+import Image from "next/image";
 import Countdown from "./Countdown";
 import { SITE } from "@/lib/content";
 
 export default function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-bl from-[var(--color-primary)] via-[var(--color-primary-dark)] to-[#0d231c]" />
-      <div className="absolute inset-0 opacity-[0.08]"
-        style={{
-          backgroundImage: "radial-gradient(circle at 20% 20%, white 1px, transparent 1px), radial-gradient(circle at 80% 70%, white 1px, transparent 1px)",
-          backgroundSize: "40px 40px, 60px 60px",
-        }}
-      />
+      {/* Background photo */}
+      <div className="absolute inset-0">
+        <Image
+          src="/images/hero.jpg"
+          alt="فعاليات بصمة شباب مصر"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-l from-[var(--color-primary)]/95 via-[var(--color-primary)]/85 to-[var(--color-primary-dark)]/95" />
+      </div>
       <div className="absolute -bottom-1 inset-x-0 h-1 bg-[var(--color-accent)]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-white">
@@ -27,7 +33,7 @@ export default function Hero() {
                 {SITE.slogan}
               </span>
             </h1>
-            <p className="text-base md:text-lg text-white/85 max-w-2xl leading-relaxed mb-8">
+            <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed mb-8">
               نُمكِّن الشباب المصري ونوصلهم بفرص العمل والتدريب وريادة الأعمال
               عبر شبكة من الشركاء وملتقيات التوظيف في كل المحافظات.
             </p>

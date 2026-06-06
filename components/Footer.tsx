@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { SITE } from "@/lib/content";
 
 export default function Footer() {
@@ -8,8 +9,14 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="md:col-span-2">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-white text-[var(--color-primary)] flex items-center justify-center font-extrabold">
-              ب
+            <div className="w-12 h-12 rounded-lg bg-white/10 p-1 flex items-center justify-center">
+              <Image
+                src="/images/logo-shield.png"
+                alt="شعار بصمة شباب مصر"
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain"
+              />
             </div>
             <div>
               <div className="font-extrabold">{SITE.name}</div>

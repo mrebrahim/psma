@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 
 const NAV = [
@@ -22,9 +23,14 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)] text-white flex items-center justify-center font-extrabold text-lg shadow-sm">
-              ب
-            </div>
+            <Image
+              src="/images/logo-shield.png"
+              alt="شعار بصمة شباب مصر"
+              width={44}
+              height={44}
+              priority
+              className="h-11 w-11 object-contain"
+            />
             <div className="hidden sm:block">
               <div className="font-extrabold text-[var(--color-primary)] leading-tight">
                 بصمة شباب مصر
