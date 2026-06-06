@@ -34,6 +34,7 @@ export default function Footer() {
           <ul className="space-y-2 text-sm text-white/85">
             <li><Link href="/about" className="hover:text-white">من نحن</Link></li>
             <li><Link href="/programs" className="hover:text-white">البرامج</Link></li>
+            <li><Link href="/team" className="hover:text-white">فريقنا</Link></li>
             <li><Link href="/jobs" className="hover:text-white">الوظائف</Link></li>
             <li><Link href="/companies/register" className="hover:text-white">للشركات</Link></li>
             <li><Link href="/contact" className="hover:text-white">تواصل معنا</Link></li>
