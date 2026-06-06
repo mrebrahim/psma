@@ -105,7 +105,7 @@ export const EVENTS_PAST = [
     jobs: 1300,
     applications: 900,
     training: 1000,
-    image: "/images/event-ministry.jpg",
+    image: "/images/event-shobra-junubia.jpg",
   },
   {
     title: "ملتقى Job Hub الثالث — 6 أكتوبر",
