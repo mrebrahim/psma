@@ -115,7 +115,7 @@ export const EVENTS_PAST = [
     jobs: 6300,
     applications: 2200,
     training: 1070,
-    image: "/images/event-jobhub4.jpg",
+    image: "/images/event-jobhub-october.jpg",
   },
   {
     title: "ملتقى Job Hub الرابع — حلوان",
