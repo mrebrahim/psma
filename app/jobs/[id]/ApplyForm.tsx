@@ -4,36 +4,75 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { GOVERNORATES, FIELDS } from "@/lib/content";
 
+const MAX_CV_MB = 5;
+const ALLOWED_CV_TYPES = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "image/jpeg",
+  "image/png",
+];
+
 export default function ApplyForm({ jobId, jobTitle }: { jobId: string; jobTitle: string }) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cvFile, setCvFile] = useState<File | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     const fd = new FormData(e.currentTarget);
-    const payload = {
-      job_id: jobId,
-      full_name: String(fd.get("full_name") ?? "").trim(),
-      phone: String(fd.get("phone") ?? "").trim(),
-      email: String(fd.get("email") ?? "").trim() || null,
-      governorate: String(fd.get("governorate") ?? "") || null,
-      qualification: String(fd.get("qualification") ?? "").trim() || null,
-      field: String(fd.get("field") ?? "") || null,
-      cover_note: String(fd.get("cover_note") ?? "").trim() || null,
-    };
 
-    if (!payload.full_name || !payload.phone) {
+    const full_name = String(fd.get("full_name") ?? "").trim();
+    const phone = String(fd.get("phone") ?? "").trim();
+    if (!full_name || !phone) {
       setError("الاسم ورقم الموبايل مطلوبان.");
       setLoading(false);
       return;
     }
 
-    const { error } = await supabase.from("applications").insert(payload);
+    let cv_url: string | null = null;
+    if (cvFile) {
+      if (cvFile.size > MAX_CV_MB * 1024 * 1024) {
+        setError(`حجم الـ CV لازم يكون أقل من ${MAX_CV_MB} ميجا.`);
+        setLoading(false);
+        return;
+      }
+      if (!ALLOWED_CV_TYPES.includes(cvFile.type)) {
+        setError("نوع الملف غير مدعوم. ارفع PDF أو Word أو صورة.");
+        setLoading(false);
+        return;
+      }
+      const ext = cvFile.name.split(".").pop()?.toLowerCase() ?? "bin";
+      const path = `${jobId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("cvs")
+        .upload(path, cvFile, { contentType: cvFile.type, upsert: false });
+      if (upErr) {
+        setError("فشل رفع الـ CV. حاول مرة أخرى.");
+        setLoading(false);
+        return;
+      }
+      cv_url = path;
+    }
+
+    const payload = {
+      job_id: jobId,
+      full_name,
+      phone,
+      email: String(fd.get("email") ?? "").trim() || null,
+      governorate: String(fd.get("governorate") ?? "") || null,
+      qualification: String(fd.get("qualification") ?? "").trim() || null,
+      field: String(fd.get("field") ?? "") || null,
+      cover_note: String(fd.get("cover_note") ?? "").trim() || null,
+      cv_url,
+    };
+
+    const { error: insertErr } = await supabase.from("applications").insert(payload);
     setLoading(false);
-    if (error) {
+    if (insertErr) {
       setError("حدث خطأ أثناء إرسال طلبك. حاول مرة أخرى.");
       return;
     }
@@ -93,6 +132,20 @@ export default function ApplyForm({ jobId, jobTitle }: { jobId: string; jobTitle
             <option value="" disabled>اختر المجال</option>
             {FIELDS.map((f) => <option key={f} value={f}>{f}</option>)}
           </select>
+        </div>
+        <div>
+          <label className="label">ارفع الـ CV (PDF / Word / صورة - حد أقصى {MAX_CV_MB}MB)</label>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,image/jpeg,image/png"
+            onChange={(e) => setCvFile(e.target.files?.[0] ?? null)}
+            className="input file:ml-3 file:rounded-full file:border-0 file:bg-[var(--color-cream)] file:text-[var(--color-primary)] file:font-bold file:py-1 file:px-3"
+          />
+          {cvFile && (
+            <div className="text-xs text-[var(--color-muted)] mt-1 truncate">
+              {cvFile.name} — {(cvFile.size / 1024).toFixed(0)}KB
+            </div>
+          )}
         </div>
         <div>
           <label className="label">نبذة مختصرة (اختياري)</label>

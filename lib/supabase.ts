@@ -31,7 +31,7 @@ export type Job = {
   governorate: string | null;
   job_type: string | null;
   field: string | null;
-  salary_range: string | null;
+  openings: number | null;
   deadline: string | null;
   status: "draft" | "published" | "closed";
   created_at: string;

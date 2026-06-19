@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { JOB_TYPES } from "@/lib/content";
+import { JOB_TYPES, GOVERNORATES, FIELDS } from "@/lib/content";
+import JobsFilters from "./JobsFilters";
 
 export const metadata = { title: "الوظائف المتاحة — بصمة شباب مصر" };
 export const revalidate = 60;
@@ -17,13 +18,42 @@ function timeAgo(iso: string) {
   return `منذ ${Math.floor(diff / 86400)} يوم`;
 }
 
-export default async function JobsPage() {
-  const { data: jobs } = await supabase
+type SearchParams = {
+  company?: string;
+  governorate?: string;
+  field?: string;
+  type?: string;
+  q?: string;
+};
+
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const sp = await searchParams;
+
+  let query = supabase
     .from("jobs")
-    .select("id, title, location, governorate, job_type, field, created_at, deadline, companies(name, sector)")
+    .select("id, title, location, governorate, job_type, field, openings, created_at, deadline, company_id, companies(name, sector)")
     .eq("status", "published")
     .order("created_at", { ascending: false })
-    .limit(60);
+    .limit(300);
+
+  if (sp.company) query = query.eq("company_id", sp.company);
+  if (sp.governorate) query = query.eq("governorate", sp.governorate);
+  if (sp.field) query = query.eq("field", sp.field);
+  if (sp.type) query = query.eq("job_type", sp.type);
+  if (sp.q) query = query.ilike("title", `%${sp.q}%`);
+
+  const { data: jobs } = await query;
+
+  const { data: companiesRows } = await supabase
+    .from("companies")
+    .select("id, name")
+    .eq("status", "approved")
+    .order("name")
+    .limit(500);
 
   const list = (jobs ?? []).map((j) => ({
     ...j,
@@ -54,7 +84,25 @@ export default async function JobsPage() {
         </div>
       </section>
 
-      <section className="py-12">
+      <section className="py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <JobsFilters
+            companies={companiesRows ?? []}
+            governorates={GOVERNORATES}
+            fields={FIELDS}
+            jobTypes={JOB_TYPES}
+            initial={{
+              company: sp.company ?? "",
+              governorate: sp.governorate ?? "",
+              field: sp.field ?? "",
+              type: sp.type ?? "",
+              q: sp.q ?? "",
+            }}
+          />
+        </div>
+      </section>
+
+      <section className="pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-extrabold text-[var(--color-primary)]">
@@ -65,13 +113,13 @@ export default async function JobsPage() {
           {list.length === 0 ? (
             <div className="card text-center py-14">
               <h3 className="text-xl font-extrabold text-[var(--color-primary)] mb-2">
-                لا توجد وظائف منشورة حاليًا
+                لا توجد وظائف مطابقة للبحث
               </h3>
               <p className="text-[var(--color-muted)] mb-5">
-                تابعنا — يتم نشر وظائف جديدة باستمرار قبل كل ملتقى توظيف.
+                جرّب تغيير الفلاتر أو تابعنا — يتم نشر وظائف جديدة باستمرار.
               </p>
-              <Link href="/companies/register" className="btn-primary">
-                هل تريد نشر وظيفة؟
+              <Link href="/jobs" className="btn-primary">
+                إعادة ضبط الفلاتر
               </Link>
             </div>
           ) : (
@@ -99,6 +147,7 @@ export default async function JobsPage() {
                     {j.job_type && <span className="chip">{typeLabel(j.job_type)}</span>}
                     {j.governorate && <span className="chip">{j.governorate}</span>}
                     {j.field && <span className="chip">{j.field}</span>}
+                    {j.openings && <span className="chip">{j.openings} فرصة</span>}
                   </div>
                   <div className="text-xs text-[var(--color-muted)] mt-3">
                     {timeAgo(j.created_at)}

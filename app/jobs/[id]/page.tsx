@@ -105,10 +105,10 @@ export default async function JobDetail({ params }: { params: Promise<Params> })
                   <div className="font-bold">{job.location}</div>
                 </div>
               )}
-              {job.salary_range && (
+              {job.openings && (
                 <div className="card">
-                  <div className="text-xs font-bold text-[var(--color-muted)] mb-1">الراتب</div>
-                  <div className="font-bold">{job.salary_range}</div>
+                  <div className="text-xs font-bold text-[var(--color-muted)] mb-1">عدد الفرص المتاحة</div>
+                  <div className="font-bold">{job.openings} فرصة</div>
                 </div>
               )}
               {job.deadline && (

@@ -24,7 +24,7 @@ export default function NewJobForm({ companyId }: { companyId: string }) {
       governorate: String(fd.get("governorate") ?? "") || null,
       job_type: String(fd.get("job_type") ?? "") || null,
       field: String(fd.get("field") ?? "") || null,
-      salary_range: String(fd.get("salary_range") ?? "").trim() || null,
+      openings: Number(fd.get("openings")) || null,
       deadline: String(fd.get("deadline") ?? "") || null,
       status: "published",
     };
@@ -103,8 +103,8 @@ export default function NewJobForm({ companyId }: { companyId: string }) {
           <input name="location" className="input" placeholder="مثال: مدينة نصر" />
         </div>
         <div>
-          <label className="label">نطاق الراتب</label>
-          <input name="salary_range" className="input" placeholder="مثال: 8000 - 12000 جنيه" />
+          <label className="label">عدد الفرص المتاحة</label>
+          <input name="openings" type="number" min={1} dir="ltr" className="input" placeholder="مثال: 5" />
         </div>
         <div>
           <label className="label">آخر موعد للتقديم</label>
