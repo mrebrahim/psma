@@ -10,7 +10,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   }
   const { id } = await params;
 
-  const { data: app } = await supabaseAdmin
+  const { data: app } = await supabaseAdmin()
     .from("applications")
     .select("cv_url")
     .eq("id", id)
@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   if (!app?.cv_url) return new NextResponse("Not found", { status: 404 });
 
-  const { data: signed, error } = await supabaseAdmin.storage
+  const { data: signed, error } = await supabaseAdmin().storage
     .from("cvs")
     .createSignedUrl(app.cv_url, 300);
 

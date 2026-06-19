@@ -27,7 +27,8 @@ export default async function AdminApplicationsPage({
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
-  let query = supabaseAdmin
+  const db = supabaseAdmin();
+  let query = db
     .from("applications")
     .select(
       "id, full_name, phone, email, governorate, qualification, field, position_applied, cover_note, cv_url, status, created_at, job_id, jobs(title, company_id, companies(id, name))",
@@ -62,13 +63,13 @@ export default async function AdminApplicationsPage({
 
   const filtered = sp.company ? apps.filter((a) => a.company?.id === sp.company) : apps;
 
-  const { data: companiesRows } = await supabaseAdmin
+  const { data: companiesRows } = await db
     .from("companies")
     .select("id, name")
     .order("name")
     .limit(500);
 
-  const { data: jobsRows } = await supabaseAdmin
+  const { data: jobsRows } = await db
     .from("jobs")
     .select("id, title, company_id, companies(name)")
     .order("created_at", { ascending: false })
