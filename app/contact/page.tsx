@@ -30,15 +30,17 @@ export default function ContactPage() {
             </a>
           </div>
           <div className="card">
-            <div className="font-extrabold text-[var(--color-primary)] mb-1">واتساب</div>
+            <div className="font-extrabold text-[var(--color-primary)] mb-1">واتساب / موبايل</div>
             <a
               href={`https://wa.me/${SITE.whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-[var(--color-muted)]"
+              className="text-sm text-[var(--color-muted)] block"
+              dir="ltr"
             >
-              تواصل عبر واتساب
+              +20 12 8255 1456
             </a>
+            <span className="text-xs text-[var(--color-muted)]">اضغط للمحادثة عبر واتساب</span>
           </div>
         </div>
       </section>

@@ -1,8 +1,8 @@
 export const SITE = {
   name: "بصمة شباب مصر",
   slogan: "أعرف · إعمل · أثر",
-  whatsapp: "201000000000",
-  email: "info@basmatshababmisr.eg",
+  whatsapp: "201282551456",
+  email: "info@basmatshababmisr.com",
   address: "جمهورية مصر العربية",
   nextEvent: {
     title: "ملتقى التوظيف الكبير — الكاتدرائية",

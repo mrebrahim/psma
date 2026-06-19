@@ -30,7 +30,7 @@ export default async function AdminApplicationsPage({
   let query = supabaseAdmin
     .from("applications")
     .select(
-      "id, full_name, phone, email, governorate, qualification, field, cover_note, cv_url, status, created_at, job_id, jobs(title, company_id, companies(id, name))",
+      "id, full_name, phone, email, governorate, qualification, field, position_applied, cover_note, cv_url, status, created_at, job_id, jobs(title, company_id, companies(id, name))",
       { count: "exact" }
     )
     .order("created_at", { ascending: false })
@@ -44,6 +44,7 @@ export default async function AdminApplicationsPage({
   type AppRow = {
     id: string; full_name: string; phone: string; email: string | null;
     governorate: string | null; qualification: string | null; field: string | null;
+    position_applied: string | null;
     cover_note: string | null; cv_url: string | null; status: string; created_at: string;
     job_id: string | null;
     jobs: { title: string; company_id: string | null; companies: { id: string; name: string } | { id: string; name: string }[] | null } | { title: string; company_id: string | null; companies: { id: string; name: string } | { id: string; name: string }[] | null }[] | null;
@@ -110,7 +111,7 @@ export default async function AdminApplicationsPage({
           <thead className="bg-[var(--color-cream)] text-[var(--color-primary)]">
             <tr>
               <th className="p-3 text-right">المتقدم</th>
-              <th className="p-3 text-right">الوظيفة</th>
+              <th className="p-3 text-right">الوظيفة المختارة</th>
               <th className="p-3 text-right">الشركة</th>
               <th className="p-3 text-right">الموبايل</th>
               <th className="p-3 text-right">المحافظة</th>
@@ -133,11 +134,12 @@ export default async function AdminApplicationsPage({
                     {a.email && <div className="text-xs text-[var(--color-muted)] truncate max-w-[200px]">{a.email}</div>}
                   </td>
                   <td className="p-3">
-                    {a.job ? (
-                      <Link href={`/jobs/${a.job_id}`} className="text-[var(--color-primary)] hover:underline">
-                        {a.job.title}
+                    <div className="font-bold">{a.position_applied ?? a.job?.title ?? "—"}</div>
+                    {a.job && a.position_applied && a.position_applied !== a.job.title && (
+                      <Link href={`/jobs/${a.job_id}`} className="text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)] hover:underline">
+                        من إعلان: {a.job.title}
                       </Link>
-                    ) : "—"}
+                    )}
                   </td>
                   <td className="p-3">{a.company?.name ?? "—"}</td>
                   <td className="p-3" dir="ltr">{a.phone}</td>

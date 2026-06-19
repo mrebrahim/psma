@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { GOVERNORATES, FIELDS } from "@/lib/content";
+import { GOVERNORATES } from "@/lib/content";
 
 const MAX_CV_MB = 5;
 const ALLOWED_CV_TYPES = [
@@ -13,11 +13,22 @@ const ALLOWED_CV_TYPES = [
   "image/png",
 ];
 
-export default function ApplyForm({ jobId, jobTitle }: { jobId: string; jobTitle: string }) {
+export default function ApplyForm({
+  jobId,
+  jobTitle,
+  positions,
+  companyName,
+}: {
+  jobId: string;
+  jobTitle: string;
+  positions: string[];
+  companyName: string | null;
+}) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const [position, setPosition] = useState<string>(positions[0] ?? "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,6 +40,12 @@ export default function ApplyForm({ jobId, jobTitle }: { jobId: string; jobTitle
     const phone = String(fd.get("phone") ?? "").trim();
     if (!full_name || !phone) {
       setError("الاسم ورقم الموبايل مطلوبان.");
+      setLoading(false);
+      return;
+    }
+
+    if (positions.length > 0 && !position) {
+      setError("اختر الوظيفة اللي بتقدّم عليها.");
       setLoading(false);
       return;
     }
@@ -65,7 +82,7 @@ export default function ApplyForm({ jobId, jobTitle }: { jobId: string; jobTitle
       email: String(fd.get("email") ?? "").trim() || null,
       governorate: String(fd.get("governorate") ?? "") || null,
       qualification: String(fd.get("qualification") ?? "").trim() || null,
-      field: String(fd.get("field") ?? "") || null,
+      position_applied: position || null,
       cover_note: String(fd.get("cover_note") ?? "").trim() || null,
       cv_url,
     };
@@ -89,7 +106,7 @@ export default function ApplyForm({ jobId, jobTitle }: { jobId: string; jobTitle
           تم إرسال طلبك بنجاح
         </h3>
         <p className="text-sm text-[var(--color-muted)]">
-          سيتم التواصل معك من قِبل الشركة في أقرب وقت.
+          سيتم التواصل معك من قِبل {companyName ?? "الشركة"} في أقرب وقت.
         </p>
       </div>
     );
@@ -103,6 +120,24 @@ export default function ApplyForm({ jobId, jobTitle }: { jobId: string; jobTitle
       <p className="text-xs text-[var(--color-muted)] mb-4 truncate">{jobTitle}</p>
 
       <div className="space-y-3">
+        {positions.length > 0 && (
+          <div>
+            <label className="label">اختر الوظيفة اللي بتقدّم عليها *</label>
+            <select
+              value={position}
+              onChange={(e) => setPosition(e.target.value)}
+              required
+              className="select"
+            >
+              {positions.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+            <div className="text-xs text-[var(--color-muted)] mt-1">
+              {positions.length} وظيفة متاحة عند الشركة
+            </div>
+          </div>
+        )}
         <div>
           <label className="label">الاسم الكامل *</label>
           <input name="full_name" required className="input" placeholder="الاسم الكامل" />
@@ -116,22 +151,15 @@ export default function ApplyForm({ jobId, jobTitle }: { jobId: string; jobTitle
           <input name="email" type="email" dir="ltr" className="input" placeholder="you@example.com" />
         </div>
         <div>
-          <label className="label">المحافظة</label>
+          <label className="label">محافظة سكنك</label>
           <select name="governorate" className="select" defaultValue="">
-            <option value="" disabled>اختر المحافظة</option>
+            <option value="" disabled>اختر محافظة سكنك</option>
             {GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
         </div>
         <div>
           <label className="label">المؤهل / التخصص</label>
           <input name="qualification" className="input" placeholder="مثال: بكالوريوس تجارة" />
-        </div>
-        <div>
-          <label className="label">المجال المفضّل</label>
-          <select name="field" className="select" defaultValue="">
-            <option value="" disabled>اختر المجال</option>
-            {FIELDS.map((f) => <option key={f} value={f}>{f}</option>)}
-          </select>
         </div>
         <div>
           <label className="label">ارفع الـ CV (PDF / Word / صورة - حد أقصى {MAX_CV_MB}MB)</label>

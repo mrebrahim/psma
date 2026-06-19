@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { JOB_TYPES } from "@/lib/content";
+import { extractPositions } from "@/lib/positions";
 import ApplyForm from "./ApplyForm";
 
 export const revalidate = 60;
@@ -38,6 +39,7 @@ export default async function JobDetail({ params }: { params: Promise<Params> })
     ...rawJob,
     companies: pickCompany<{ name: string; sector: string | null; description: string | null; website: string | null }>(rawJob.companies),
   };
+  const positions = extractPositions(job.description);
 
   return (
     <>
@@ -139,7 +141,12 @@ export default async function JobDetail({ params }: { params: Promise<Params> })
 
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <ApplyForm jobId={job.id} jobTitle={job.title} />
+              <ApplyForm
+                jobId={job.id}
+                jobTitle={job.title}
+                positions={positions}
+                companyName={job.companies?.name ?? null}
+              />
             </div>
           </div>
         </div>
