@@ -27,6 +27,26 @@ export default async function AdminApplicationsPage({
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="card border-2 border-[var(--color-accent)]">
+          <h1 className="text-xl font-extrabold text-[var(--color-accent)] mb-2">
+            إعدادات السيرفر ناقصة
+          </h1>
+          <p className="text-sm text-[var(--color-ink)] leading-relaxed mb-3">
+            متغير البيئة <code className="font-mono bg-[var(--color-cream)] px-2 py-0.5 rounded">SUPABASE_SERVICE_ROLE_KEY</code> غير مضبوط على الخادم.
+            بدونه، لا يمكن قراءة التقديمات.
+          </p>
+          <p className="text-sm text-[var(--color-muted)]">
+            افتح لوحة Coolify → Environment Variables، أضف القيمة من
+            Supabase → Settings → API → service_role، ثم اعمل Redeploy.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const db = supabaseAdmin();
   let query = db
     .from("applications")
@@ -40,7 +60,22 @@ export default async function AdminApplicationsPage({
   if (sp.job) query = query.eq("job_id", sp.job);
   if (sp.q) query = query.or(`full_name.ilike.%${sp.q}%,phone.ilike.%${sp.q}%,email.ilike.%${sp.q}%`);
 
-  const { data: rawApps, count } = await query;
+  const { data: rawApps, count, error: appsErr } = await query;
+  if (appsErr) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="card border-2 border-[var(--color-accent)]">
+          <h1 className="text-xl font-extrabold text-[var(--color-accent)] mb-2">
+            فشل قراءة التقديمات
+          </h1>
+          <p className="text-sm text-[var(--color-ink)] mb-2">{appsErr.message}</p>
+          <p className="text-xs text-[var(--color-muted)]">
+            راجع أن SUPABASE_SERVICE_ROLE_KEY مضبوط بقيمة صحيحة من Supabase → Settings → API.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   type AppRow = {
     id: string; full_name: string; phone: string; email: string | null;
