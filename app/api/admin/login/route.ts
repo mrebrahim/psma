@@ -18,14 +18,19 @@ export async function POST(request: Request) {
     password === expectedPassword;
 
   if (!ok) {
-    return NextResponse.redirect(
-      new URL(`/admin/login?error=1&next=${encodeURIComponent(safeNext)}`, request.url),
-      { status: 303 }
-    );
+    return new NextResponse(null, {
+      status: 303,
+      headers: {
+        Location: `/admin/login?error=1&next=${encodeURIComponent(safeNext)}`,
+      },
+    });
   }
 
   const token = await expectedToken();
-  const res = NextResponse.redirect(new URL(safeNext, request.url), { status: 303 });
+  const res = new NextResponse(null, {
+    status: 303,
+    headers: { Location: safeNext },
+  });
   res.cookies.set(ADMIN_COOKIE, token, {
     httpOnly: true,
     secure: true,

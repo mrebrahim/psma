@@ -10,10 +10,8 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get(ADMIN_COOKIE)?.value;
   if (await isValidToken(token)) return NextResponse.next();
 
-  const url = request.nextUrl.clone();
-  url.pathname = "/admin/login";
-  url.searchParams.set("next", pathname);
-  return NextResponse.redirect(url);
+  const location = `/admin/login?next=${encodeURIComponent(pathname)}`;
+  return new NextResponse(null, { status: 307, headers: { Location: location } });
 }
 
 export const config = {
