@@ -1,5 +1,5 @@
 const COOKIE_NAME = "psma_admin";
-const SCOPE = "admin_session_v1";
+const SCOPE = "admin_session_v2";
 
 async function sha256Hex(input: string): Promise<string> {
   const data = new TextEncoder().encode(input);
@@ -10,8 +10,9 @@ async function sha256Hex(input: string): Promise<string> {
 }
 
 export async function expectedToken(): Promise<string> {
+  const email = (process.env.ADMIN_EMAIL ?? "").trim().toLowerCase();
   const pw = process.env.ADMIN_PASSWORD ?? "";
-  return sha256Hex(pw + ":" + SCOPE);
+  return sha256Hex(`${email}:${pw}:${SCOPE}`);
 }
 
 export async function isValidToken(token: string | undefined): Promise<boolean> {

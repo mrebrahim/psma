@@ -4,7 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { GOVERNORATES } from "@/lib/content";
 
-const MAX_CV_MB = 5;
+const MAX_CV_MB = 1;
 const ALLOWED_CV_TYPES = [
   "application/pdf",
   "application/msword",
