@@ -2,168 +2,271 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 const MAX_LOGO_KB = 200;
 const ALLOWED_LOGO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
 
+type FormState = {
+  name: string;
+  email: string;
+  phone: string;
+  representative: string;
+  sector: string;
+  website: string;
+  address: string;
+  description: string;
+};
+
+const EMPTY: FormState = {
+  name: "", email: "", phone: "", representative: "",
+  sector: "", website: "", address: "", description: "",
+};
+
 export default function RegisterForm() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [phase, setPhase] = useState<"form" | "otp" | "saving">("form");
+  const [state, setState] = useState<FormState>(EMPTY);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [otp, setOtp] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [alreadyAuthed, setAlreadyAuthed] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    const fd = new FormData(e.currentTarget);
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      const { data: c } = await supabase
+        .from("companies").select("id").eq("auth_user_id", session.user.id).maybeSingle();
+      if (c) {
+        router.replace("/companies/dashboard");
+        return;
+      }
+      setAlreadyAuthed(true);
+      setState((s) => ({ ...s, email: session.user.email ?? "" }));
+    })();
+  }, [router]);
 
-    const email = String(fd.get("email") ?? "").trim();
-    const password = String(fd.get("password") ?? "");
-    const name = String(fd.get("name") ?? "").trim();
+  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setState((s) => ({ ...s, [key]: value }));
+  }
 
-    if (!email || !password || !name) {
-      setError("اسم الشركة والإيميل وكلمة المرور مطلوبين.");
-      setLoading(false);
-      return;
-    }
-    if (password.length < 8) {
-      setError("كلمة المرور لازم تكون 8 حروف على الأقل.");
-      setLoading(false);
-      return;
-    }
-
+  function validateForm(): string | null {
+    if (!state.name.trim()) return "اسم الشركة مطلوب.";
+    if (!state.email.trim()) return "البريد الإلكتروني مطلوب.";
+    if (!state.phone.trim()) return "رقم الموبايل مطلوب.";
+    if (!/^[+0-9 ]{8,}$/.test(state.phone.trim())) return "رقم الموبايل غير صالح.";
     if (logoFile) {
-      if (logoFile.size > MAX_LOGO_KB * 1024) {
-        setError(`حجم اللوجو لازم يكون أقل من ${MAX_LOGO_KB} كيلوبايت.`);
-        setLoading(false);
-        return;
-      }
-      if (!ALLOWED_LOGO_TYPES.includes(logoFile.type)) {
-        setError("نوع الملف غير مدعوم. ارفع JPG أو PNG أو WebP أو SVG.");
-        setLoading(false);
-        return;
-      }
+      if (logoFile.size > MAX_LOGO_KB * 1024) return `حجم اللوجو لازم يكون أقل من ${MAX_LOGO_KB}KB.`;
+      if (!ALLOWED_LOGO_TYPES.includes(logoFile.type)) return "نوع اللوجو غير مدعوم (PNG/JPG/WebP/SVG).";
     }
+    return null;
+  }
 
-    // 1) Sign up
-    const { data: signup, error: signErr } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (signErr || !signup.user) {
-      setError(signErr?.message?.includes("already") ? "الإيميل ده مسجّل قبل كده. سجّل دخول بدل التسجيل." : (signErr?.message ?? "فشل التسجيل."));
-      setLoading(false);
+  async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
+    const v = validateForm();
+    if (v) return setError(v);
+
+    if (alreadyAuthed) {
+      await createCompany();
       return;
     }
-    const userId = signup.user.id;
 
-    // 2) Upload logo (if any) to logos bucket
+    setBusy(true);
+    const { error: err } = await supabase.auth.signInWithOtp({
+      email: state.email.trim(),
+      options: { shouldCreateUser: true },
+    });
+    setBusy(false);
+    if (err) return setError(err.message);
+    setPhase("otp");
+    setInfo(`بعتنا رمز تحقق على ${state.email}.`);
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    if (otp.length < 6) return setError("الرمز لازم يكون 6 أرقام.");
+    setBusy(true);
+    const { error: err } = await supabase.auth.verifyOtp({
+      email: state.email.trim(),
+      token: otp.trim(),
+      type: "email",
+    });
+    setBusy(false);
+    if (err) return setError("الرمز غلط أو انتهت صلاحيته.");
+    await createCompany();
+  }
+
+  async function resendOtp() {
+    setError(null);
+    setInfo(null);
+    setBusy(true);
+    const { error: err } = await supabase.auth.signInWithOtp({
+      email: state.email.trim(),
+      options: { shouldCreateUser: true },
+    });
+    setBusy(false);
+    if (err) return setError(err.message);
+    setInfo("اتبعت كود جديد.");
+  }
+
+  async function createCompany() {
+    setPhase("saving");
+    setBusy(true);
+    setError(null);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setError("خطأ في الجلسة. أعد المحاولة.");
+      setPhase("form");
+      setBusy(false);
+      return;
+    }
+
     let logo_url: string | null = null;
     if (logoFile) {
       const ext = logoFile.name.split(".").pop()?.toLowerCase() ?? "png";
-      const path = `${userId}/logo-${Date.now()}.${ext}`;
+      const path = `${user.id}/logo-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
-        .from("logos")
-        .upload(path, logoFile, { contentType: logoFile.type, upsert: true });
+        .from("logos").upload(path, logoFile, { contentType: logoFile.type, upsert: true });
       if (!upErr) {
-        const { data: pub } = supabase.storage.from("logos").getPublicUrl(path);
-        logo_url = pub.publicUrl;
+        logo_url = supabase.storage.from("logos").getPublicUrl(path).data.publicUrl;
       }
     }
 
-    // 3) Insert company row owned by this user
-    const payload = {
-      auth_user_id: userId,
-      name,
-      representative: String(fd.get("representative") ?? "").trim() || null,
-      email,
-      phone: String(fd.get("phone") ?? "").trim() || null,
-      sector: String(fd.get("sector") ?? "").trim() || null,
-      website: String(fd.get("website") ?? "").trim() || null,
-      description: String(fd.get("description") ?? "").trim() || null,
-      address: String(fd.get("address") ?? "").trim() || null,
+    const { error: insErr } = await supabase.from("companies").insert({
+      auth_user_id: user.id,
+      name: state.name.trim(),
+      email: state.email.trim(),
+      phone: state.phone.trim(),
+      representative: state.representative.trim() || null,
+      sector: state.sector.trim() || null,
+      website: state.website.trim() || null,
+      description: state.description.trim() || null,
+      address: state.address.trim() || null,
       logo_url,
       status: "approved",
-    };
-    const { error: insertErr } = await supabase.from("companies").insert(payload);
-    if (insertErr) {
-      setError("فشل حفظ بيانات الشركة: " + insertErr.message);
-      setLoading(false);
+    });
+    setBusy(false);
+    if (insErr) {
+      setError("فشل حفظ بيانات الشركة: " + insErr.message);
+      setPhase("form");
       return;
     }
-
-    setDone(true);
-    setLoading(false);
-    setTimeout(() => router.push("/companies/dashboard"), 1200);
+    router.push("/companies/dashboard");
   }
 
-  if (done) {
+  if (phase === "otp") {
     return (
-      <div className="card text-center">
-        <div className="w-14 h-14 rounded-full bg-[var(--color-primary)] text-white mx-auto mb-3 flex items-center justify-center text-2xl">
-          ✓
+      <form onSubmit={handleVerifyOtp} className="card">
+        <h2 className="font-extrabold text-xl text-[var(--color-primary)] mb-1">رمز التحقق</h2>
+        <p className="text-sm text-[var(--color-muted)] mb-4">
+          ادخل الـ 6 أرقام اللي وصلوا على{" "}
+          <span dir="ltr" className="font-bold">{state.email}</span>.
+        </p>
+        <input
+          autoFocus
+          dir="ltr"
+          inputMode="numeric"
+          maxLength={6}
+          value={otp}
+          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+          className="input text-center text-2xl font-extrabold tracking-[0.5em]"
+          placeholder="••••••"
+        />
+        {info && <div className="mt-3 text-sm text-[var(--color-primary)] font-bold">{info}</div>}
+        {error && <div className="mt-3 text-sm text-[var(--color-accent)] font-bold">{error}</div>}
+        <button type="submit" disabled={busy} className="btn-primary w-full justify-center mt-4 disabled:opacity-60">
+          {busy ? "جارٍ التحقق..." : "تأكيد"}
+        </button>
+        <div className="flex justify-between mt-4 text-sm">
+          <button type="button" onClick={resendOtp} disabled={busy} className="text-[var(--color-primary)] font-bold hover:underline">
+            إرسال كود تاني
+          </button>
+          <button type="button" onClick={() => { setPhase("form"); setOtp(""); setInfo(null); setError(null); }} className="text-[var(--color-muted)] hover:underline">
+            تغيير الإيميل
+          </button>
         </div>
-        <h3 className="font-extrabold text-[var(--color-primary)] text-xl mb-2">
-          تم إنشاء حساب الشركة بنجاح
-        </h3>
-        <p className="text-[var(--color-muted)] mb-5">جارٍ تحويلك إلى لوحة التحكم...</p>
-      </div>
+      </form>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card">
+    <form onSubmit={handleFormSubmit} className="card">
       <h2 className="font-extrabold text-xl text-[var(--color-primary)] mb-1">
         إنشاء حساب الشركة
       </h2>
       <p className="text-sm text-[var(--color-muted)] mb-5">
-        سجّل مرة واحدة، وبعدها ادخل لوحة التحكم لرفع وظائف من غير ما تكرر بيانات الشركة.
+        املأ البيانات وهنبعتلك رمز تحقق على الإيميل.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
           <label className="label">اسم الشركة *</label>
-          <input name="name" required className="input" placeholder="مثال: شركة النور للخدمات" />
+          <input
+            required
+            value={state.name}
+            onChange={(e) => update("name", e.target.value)}
+            className="input"
+            placeholder="مثال: شركة النور للخدمات"
+          />
         </div>
-
         <div>
           <label className="label">البريد الإلكتروني *</label>
-          <input name="email" type="email" required dir="ltr" autoComplete="email" className="input" placeholder="hr@company.com" />
+          <input
+            required
+            type="email"
+            dir="ltr"
+            autoComplete="email"
+            disabled={alreadyAuthed}
+            value={state.email}
+            onChange={(e) => update("email", e.target.value)}
+            className="input disabled:opacity-70"
+            placeholder="hr@company.com"
+          />
+          {alreadyAuthed && (
+            <div className="text-xs text-[var(--color-muted)] mt-1">حسابك اتفعّل بالإيميل ده.</div>
+          )}
         </div>
         <div>
-          <label className="label">كلمة المرور * (8 حروف على الأقل)</label>
-          <input name="password" type="password" required minLength={8} dir="ltr" autoComplete="new-password" className="input" placeholder="••••••••" />
+          <label className="label">رقم الموبايل *</label>
+          <input
+            required
+            dir="ltr"
+            value={state.phone}
+            onChange={(e) => update("phone", e.target.value)}
+            className="input"
+            placeholder="01xxxxxxxxx"
+          />
         </div>
 
         <div>
           <label className="label">اسم الممثل</label>
-          <input name="representative" className="input" placeholder="مسؤول التواصل" />
+          <input value={state.representative} onChange={(e) => update("representative", e.target.value)} className="input" placeholder="مسؤول التواصل" />
         </div>
         <div>
           <label className="label">القطاع</label>
-          <input name="sector" className="input" placeholder="مثال: تكنولوجيا المعلومات" />
-        </div>
-
-        <div>
-          <label className="label">رقم الموبايل</label>
-          <input name="phone" dir="ltr" className="input" placeholder="01xxxxxxxxx" />
-        </div>
-        <div>
-          <label className="label">الموقع الإلكتروني</label>
-          <input name="website" dir="ltr" className="input" placeholder="https://" />
+          <input value={state.sector} onChange={(e) => update("sector", e.target.value)} className="input" placeholder="مثال: تكنولوجيا المعلومات" />
         </div>
 
         <div className="md:col-span-2">
           <label className="label">عنوان الشركة</label>
-          <input name="address" className="input" placeholder="مثال: مدينة نصر، القاهرة" />
+          <input value={state.address} onChange={(e) => update("address", e.target.value)} className="input" placeholder="مثال: مدينة نصر، القاهرة" />
+        </div>
+        <div className="md:col-span-2">
+          <label className="label">الموقع الإلكتروني</label>
+          <input dir="ltr" value={state.website} onChange={(e) => update("website", e.target.value)} className="input" placeholder="https://" />
         </div>
 
         <div className="md:col-span-2">
           <label className="label">نبذة عن الشركة</label>
-          <textarea name="description" className="textarea" placeholder="نبذة قصيرة عن نشاط الشركة وحجمها" />
+          <textarea value={state.description} onChange={(e) => update("description", e.target.value)} className="textarea" placeholder="نبذة قصيرة عن نشاط الشركة وحجمها" />
         </div>
 
         <div className="md:col-span-2">
@@ -184,8 +287,8 @@ export default function RegisterForm() {
 
       {error && <div className="mt-3 text-sm text-[var(--color-accent)] font-bold">{error}</div>}
 
-      <button type="submit" disabled={loading} className="btn-primary w-full justify-center mt-5 disabled:opacity-60">
-        {loading ? "جارٍ إنشاء الحساب..." : "إنشاء الحساب"}
+      <button type="submit" disabled={busy} className="btn-primary w-full justify-center mt-5 disabled:opacity-60">
+        {busy ? "جارٍ الإرسال..." : alreadyAuthed ? "حفظ بيانات الشركة" : "إرسال رمز التحقق"}
       </button>
 
       <div className="text-sm text-center mt-4 text-[var(--color-muted)]">
