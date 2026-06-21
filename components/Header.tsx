@@ -55,6 +55,9 @@ export default function Header() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-2">
+            <Link href="/companies/login" className="btn-outline text-sm">
+              دخول الشركات
+            </Link>
             <Link href="/jobs" className="btn-primary text-sm">
               تقدّم على وظيفة
             </Link>
@@ -87,6 +90,13 @@ export default function Header() {
                 {item.label}
               </Link>
             ))}
+            <Link
+              href="/companies/login"
+              onClick={() => setOpen(false)}
+              className="btn-outline w-full justify-center mt-2"
+            >
+              دخول الشركات
+            </Link>
             <Link
               href="/jobs"
               onClick={() => setOpen(false)}

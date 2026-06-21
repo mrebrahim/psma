@@ -10,6 +10,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
           <nav className="flex items-center gap-3 text-sm font-bold">
             <Link href="/admin" className="hover:text-[var(--color-primary)]">التقديمات</Link>
+            <Link href="/admin/jobs?tab=pending" className="hover:text-[var(--color-primary)]">مراجعة الوظائف</Link>
             <Link href="/" className="hover:text-[var(--color-primary)]">الموقع</Link>
             <form method="POST" action="/api/admin/logout">
               <button type="submit" className="text-[var(--color-accent)] hover:underline">
