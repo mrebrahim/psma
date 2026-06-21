@@ -92,7 +92,7 @@ export default function RegisterForm() {
   async function handleVerifyOtp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    if (otp.length < 6) return setError("الرمز لازم يكون 6 أرقام.");
+    if (otp.length < 6) return setError("الرمز ناقص.");
     setBusy(true);
     const { error: err } = await supabase.auth.verifyOtp({
       email: state.email.trim(),
@@ -168,17 +168,17 @@ export default function RegisterForm() {
       <form onSubmit={handleVerifyOtp} className="card">
         <h2 className="font-extrabold text-xl text-[var(--color-primary)] mb-1">رمز التحقق</h2>
         <p className="text-sm text-[var(--color-muted)] mb-4">
-          ادخل الـ 6 أرقام اللي وصلوا على{" "}
+          ادخل الرمز اللي وصل على{" "}
           <span dir="ltr" className="font-bold">{state.email}</span>.
         </p>
         <input
           autoFocus
           dir="ltr"
           inputMode="numeric"
-          maxLength={6}
+          maxLength={10}
           value={otp}
           onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-          className="input text-center text-2xl font-extrabold tracking-[0.5em]"
+          className="input text-center text-2xl font-extrabold tracking-[0.4em]"
           placeholder="••••••"
         />
         {info && <div className="mt-3 text-sm text-[var(--color-primary)] font-bold">{info}</div>}
