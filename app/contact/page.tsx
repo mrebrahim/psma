@@ -18,29 +18,21 @@ export default function ContactPage() {
       </section>
 
       <section className="py-14">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-3 gap-4">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-4">
           <div className="card">
             <div className="font-extrabold text-[var(--color-primary)] mb-1">العنوان</div>
             <div className="text-sm text-[var(--color-muted)]">{SITE.address}</div>
           </div>
           <div className="card">
             <div className="font-extrabold text-[var(--color-primary)] mb-1">البريد الإلكتروني</div>
-            <a href={`mailto:${SITE.email}`} className="text-sm text-[var(--color-muted)]" dir="ltr">
-              {SITE.email}
-            </a>
-          </div>
-          <div className="card">
-            <div className="font-extrabold text-[var(--color-primary)] mb-1">واتساب / موبايل</div>
             <a
-              href={`https://wa.me/${SITE.whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-[var(--color-muted)] block"
+              href={`mailto:${SITE.email}`}
+              className="text-sm text-[var(--color-primary)] font-bold hover:underline block"
               dir="ltr"
             >
-              +20 12 8255 1456
+              {SITE.email}
             </a>
-            <span className="text-xs text-[var(--color-muted)]">اضغط للمحادثة عبر واتساب</span>
+            <span className="text-xs text-[var(--color-muted)]">اضغط لإرسال بريد إلكتروني</span>
           </div>
         </div>
       </section>

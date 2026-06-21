@@ -3,7 +3,6 @@ import { Almarai } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import WhatsAppFab from "@/components/WhatsAppFab";
 
 const GA_ID = "G-E92CR9F3NE";
 
@@ -49,7 +48,6 @@ gtag('config', '${GA_ID}');`,
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
-        <WhatsAppFab />
       </body>
     </html>
   );

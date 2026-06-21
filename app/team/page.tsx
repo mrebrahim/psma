@@ -1,5 +1,5 @@
 import TeamCard from "@/components/TeamCard";
-import { TEAM, STAFF } from "@/lib/content";
+import { TEAM, STAFF, SITE } from "@/lib/content";
 
 export const metadata = { title: "فريقنا — بصمة شباب مصر" };
 
@@ -58,13 +58,8 @@ export default function TeamPage() {
           <p className="section-sub">
             بنرحّب بالمتطوّعين والكوادر اللي عايزة تساهم في تمكين الشباب المصري.
           </p>
-          <a
-            href={`https://wa.me/201000000000`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary"
-          >
-            تواصل معانا
+          <a href={`mailto:${SITE.email}`} className="btn-primary">
+            تواصل معانا عبر الإيميل
           </a>
         </div>
       </section>

@@ -1,7 +1,6 @@
 export const SITE = {
   name: "بصمة شباب مصر",
   slogan: "أعرف · إعمل · أثر",
-  whatsapp: "201282551456",
   email: "info@basmatshababmisr.com",
   address: "جمهورية مصر العربية",
   nextEvent: {

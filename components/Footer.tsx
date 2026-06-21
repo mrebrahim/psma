@@ -45,15 +45,9 @@ export default function Footer() {
           <h4 className="font-extrabold mb-3">تواصل</h4>
           <ul className="space-y-2 text-sm text-white/85">
             <li>{SITE.address}</li>
-            <li dir="ltr" className="text-right">{SITE.email}</li>
             <li>
-              <a
-                href={`https://wa.me/${SITE.whatsapp}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white"
-              >
-                واتساب
+              <a href={`mailto:${SITE.email}`} className="hover:text-white" dir="ltr">
+                {SITE.email}
               </a>
             </li>
           </ul>
