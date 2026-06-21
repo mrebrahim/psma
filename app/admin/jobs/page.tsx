@@ -35,10 +35,9 @@ export default async function AdminJobsQueuePage({
   const statusFilter = tab === "all" ? undefined : tab;
   let q = db
     .from("jobs")
-    .select("id, title, description, requirements, experience_required, age_min, age_max, governorates, openings, status, rejection_reason, created_at, reviewed_at, companies(name, logo_url, email)")
-    .eq("submitted_by_company", true)
+    .select("id, title, description, requirements, experience_required, age_min, age_max, governorates, openings, status, rejection_reason, created_at, reviewed_at, submitted_by_company, companies(name, logo_url, email)")
     .order("created_at", { ascending: false })
-    .limit(200);
+    .limit(500);
   if (statusFilter) q = q.eq("status", statusFilter);
 
   const { data: jobs, error } = await q;
@@ -48,6 +47,7 @@ export default async function AdminJobsQueuePage({
     experience_required: string | null; age_min: number | null; age_max: number | null;
     governorates: string[] | null; openings: number | null; status: string;
     rejection_reason: string | null; created_at: string; reviewed_at: string | null;
+    submitted_by_company: boolean;
     companies: { name: string; logo_url: string | null; email: string } | { name: string; logo_url: string | null; email: string }[] | null;
   };
 
@@ -120,9 +120,12 @@ export default async function AdminJobsQueuePage({
                       <span className={`inline-block text-xs font-bold px-2 py-1 rounded-full ${s.cls}`}>
                         {s.label}
                       </span>
+                      <span className={`inline-block text-xs font-bold px-2 py-1 rounded-full ${j.submitted_by_company ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-700"}`}>
+                        {j.submitted_by_company ? "من شركة مسجّلة" : "مستوردة"}
+                      </span>
                     </div>
                     <div className="text-sm text-[var(--color-muted)]">
-                      {j.company?.name} {j.company?.email && <span dir="ltr">— {j.company.email}</span>}
+                      {j.company?.name} {j.company?.email && !j.company.email.endsWith("@psma.local") && <span dir="ltr">— {j.company.email}</span>}
                     </div>
                   </div>
                   <div className="text-xs text-[var(--color-muted)] whitespace-nowrap">

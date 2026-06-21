@@ -37,6 +37,15 @@ export default function JobReviewActions({ jobId, status }: { jobId: string; sta
     } else alert("فشل: " + (await res.text()));
   }
 
+  async function remove() {
+    if (!confirm("حذف الوظيفة وكل التقديمات عليها نهائيًا؟")) return;
+    setBusy(true);
+    const res = await fetch(`/api/admin/jobs/${jobId}/delete`, { method: "POST" });
+    setBusy(false);
+    if (res.ok) router.refresh();
+    else alert("فشل: " + (await res.text()));
+  }
+
   return (
     <div className="mt-4 flex flex-wrap gap-2 items-start">
       {status !== "published" && (
@@ -53,6 +62,13 @@ export default function JobReviewActions({ jobId, status }: { jobId: string; sta
           ✕ رفض
         </button>
       )}
+      <button
+        onClick={remove}
+        disabled={busy}
+        className="border border-red-300 text-red-700 font-bold px-4 py-2 rounded-full hover:bg-red-50 text-sm disabled:opacity-60"
+      >
+        🗑 حذف
+      </button>
       {showReject && (
         <div className="w-full mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
           <label className="label">سبب الرفض (هيظهر للشركة)</label>
