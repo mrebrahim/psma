@@ -10,6 +10,7 @@ const NAV = [
   { href: "/programs", label: "البرامج" },
   { href: "/team", label: "فريقنا" },
   { href: "/jobs", label: "الوظائف" },
+  { href: "/trainings", label: "التدريبات" },
   { href: "/companies/register", label: "للشركات" },
   { href: "/contact", label: "تواصل معنا" },
 ];

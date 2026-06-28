@@ -36,6 +36,7 @@ export default function Footer() {
             <li><Link href="/programs" className="hover:text-white">البرامج</Link></li>
             <li><Link href="/team" className="hover:text-white">فريقنا</Link></li>
             <li><Link href="/jobs" className="hover:text-white">الوظائف</Link></li>
+            <li><Link href="/trainings" className="hover:text-white">التدريبات</Link></li>
             <li><Link href="/companies/register" className="hover:text-white">للشركات</Link></li>
             <li><Link href="/contact" className="hover:text-white">تواصل معنا</Link></li>
           </ul>
