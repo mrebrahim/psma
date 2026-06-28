@@ -32,6 +32,19 @@ export default async function AdminJobsQueuePage({
   }
 
   const db = supabaseAdmin();
+
+  // Stats across all statuses
+  const { data: allJobs } = await db
+    .from("jobs")
+    .select("status, company_id");
+  const statusCounts = { pending: 0, published: 0, rejected: 0, draft: 0, closed: 0, all: 0 };
+  const pendingCompanyIds = new Set<string>();
+  for (const j of (allJobs ?? []) as { status: string; company_id: string | null }[]) {
+    statusCounts.all++;
+    statusCounts[j.status as keyof typeof statusCounts] = (statusCounts[j.status as keyof typeof statusCounts] ?? 0) + 1;
+    if (j.status === "pending" && j.company_id) pendingCompanyIds.add(j.company_id);
+  }
+
   const statusFilter = tab === "all" ? undefined : tab;
   let q = db
     .from("jobs")
@@ -73,6 +86,25 @@ export default async function AdminJobsQueuePage({
           </p>
         </div>
         <Link href="/admin" className="btn-outline text-sm">→ التقديمات</Link>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="card">
+          <div className="text-xs text-[var(--color-muted)] mb-1">في انتظار المراجعة</div>
+          <div className="text-2xl font-extrabold text-amber-700">{statusCounts.pending}</div>
+        </div>
+        <div className="card">
+          <div className="text-xs text-[var(--color-muted)] mb-1">شركات تنتظر مراجعة</div>
+          <div className="text-2xl font-extrabold text-amber-700">{pendingCompanyIds.size}</div>
+        </div>
+        <div className="card">
+          <div className="text-xs text-[var(--color-muted)] mb-1">منشورة على الموقع</div>
+          <div className="text-2xl font-extrabold text-emerald-700">{statusCounts.published}</div>
+        </div>
+        <div className="card">
+          <div className="text-xs text-[var(--color-muted)] mb-1">مرفوضة</div>
+          <div className="text-2xl font-extrabold text-red-700">{statusCounts.rejected}</div>
+        </div>
       </div>
 
       <div className="flex gap-1 border-b">
