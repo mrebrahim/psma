@@ -48,10 +48,23 @@ export default async function AdminApplicationsPage({
   }
 
   const db = supabaseAdmin();
+
+  // Stats across all applications (independent of current filter/page)
+  const { data: statRows } = await db
+    .from("applications")
+    .select("cv_url, cv_download_count");
+  const statsAll = (statRows ?? []) as { cv_url: string | null; cv_download_count: number }[];
+  const stats = {
+    total: statsAll.length,
+    withCv: statsAll.filter((a) => a.cv_url).length,
+    cvsDownloaded: statsAll.filter((a) => (a.cv_download_count ?? 0) > 0).length,
+    downloadEvents: statsAll.reduce((s, a) => s + (a.cv_download_count ?? 0), 0),
+  };
+
   let query = db
     .from("applications")
     .select(
-      "id, full_name, phone, email, governorate, qualification, field, position_applied, cover_note, cv_url, status, created_at, job_id, jobs(title, company_id, companies(id, name))",
+      "id, full_name, phone, email, governorate, qualification, field, position_applied, cover_note, cv_url, cv_download_count, cv_last_downloaded_at, status, created_at, job_id, jobs(title, company_id, companies(id, name))",
       { count: "exact" }
     )
     .order("created_at", { ascending: false })
@@ -81,7 +94,9 @@ export default async function AdminApplicationsPage({
     id: string; full_name: string; phone: string; email: string | null;
     governorate: string | null; qualification: string | null; field: string | null;
     position_applied: string | null;
-    cover_note: string | null; cv_url: string | null; status: string; created_at: string;
+    cover_note: string | null; cv_url: string | null;
+    cv_download_count: number; cv_last_downloaded_at: string | null;
+    status: string; created_at: string;
     job_id: string | null;
     jobs: { title: string; company_id: string | null; companies: { id: string; name: string } | { id: string; name: string }[] | null } | { title: string; company_id: string | null; companies: { id: string; name: string } | { id: string; name: string }[] | null }[] | null;
   };
@@ -126,9 +141,25 @@ export default async function AdminApplicationsPage({
           <h1 className="text-2xl font-extrabold text-[var(--color-primary)]">
             تقديمات الباحثين عن عمل
           </h1>
-          <p className="text-sm text-[var(--color-muted)]">
-            إجمالي التقديمات: <span className="font-bold">{totalCount}</span>
-          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="card">
+          <div className="text-xs text-[var(--color-muted)] mb-1">إجمالي التقديمات</div>
+          <div className="text-2xl font-extrabold text-[var(--color-primary)]">{stats.total}</div>
+        </div>
+        <div className="card">
+          <div className="text-xs text-[var(--color-muted)] mb-1">رفعوا CV</div>
+          <div className="text-2xl font-extrabold text-emerald-700">{stats.withCv}</div>
+        </div>
+        <div className="card">
+          <div className="text-xs text-[var(--color-muted)] mb-1">CVs نزّلتها الشركات</div>
+          <div className="text-2xl font-extrabold text-blue-700">{stats.cvsDownloaded}</div>
+        </div>
+        <div className="card">
+          <div className="text-xs text-[var(--color-muted)] mb-1">إجمالي مرات التنزيل</div>
+          <div className="text-2xl font-extrabold text-blue-700">{stats.downloadEvents}</div>
         </div>
       </div>
 
@@ -182,14 +213,25 @@ export default async function AdminApplicationsPage({
                   <td className="p-3">{a.governorate ?? "—"}</td>
                   <td className="p-3">
                     {a.cv_url ? (
-                      <a
-                        href={`/api/admin/cv/${a.id}`}
-                        target="_blank"
-                        rel="noopener"
-                        className="text-[var(--color-primary)] font-bold hover:underline"
-                      >
-                        تحميل
-                      </a>
+                      <div className="flex flex-col items-start gap-1">
+                        <a
+                          href={`/api/admin/cv/${a.id}`}
+                          target="_blank"
+                          rel="noopener"
+                          className="text-[var(--color-primary)] font-bold hover:underline"
+                        >
+                          تحميل
+                        </a>
+                        {a.cv_download_count > 0 ? (
+                          <span className="text-[10px] text-blue-700 font-bold">
+                            ✓ الشركة نزّلت {a.cv_download_count}×
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-[var(--color-muted)]">
+                            لم تنزله الشركة بعد
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-[var(--color-muted)]">—</span>
                     )}

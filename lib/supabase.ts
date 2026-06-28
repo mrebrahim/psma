@@ -65,5 +65,8 @@ export type Application = {
   cv_url: string | null;
   cover_note: string | null;
   status: string;
+  cv_first_downloaded_at: string | null;
+  cv_last_downloaded_at: string | null;
+  cv_download_count: number;
   created_at: string;
 };

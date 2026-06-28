@@ -51,12 +51,21 @@ export default function JobDetailClient({ jobId }: { jobId: string }) {
     });
   }, [apps, search, withCvOnly]);
 
-  async function downloadCv(cv_url: string) {
+  async function downloadCv(appId: string) {
+    const { data: cv_url, error: rpcErr } = await supabase.rpc("log_company_cv_download", { app_id: appId });
+    if (rpcErr || !cv_url) {
+      alert("فشل تنزيل الـ CV: " + (rpcErr?.message ?? "غير مصرّح"));
+      return;
+    }
     const { data, error: err } = await supabase.storage.from("cvs").createSignedUrl(cv_url, 300);
     if (err || !data) {
       alert("فشل تنزيل الـ CV: " + (err?.message ?? "خطأ"));
       return;
     }
+    // Update local state so the count is reflected immediately
+    setApps((prev) => prev.map((a) => a.id === appId
+      ? { ...a, cv_download_count: (a.cv_download_count ?? 0) + 1, cv_last_downloaded_at: new Date().toISOString() }
+      : a));
     window.open(data.signedUrl, "_blank", "noopener");
   }
 
@@ -238,12 +247,19 @@ export default function JobDetailClient({ jobId }: { jobId: string }) {
                     <td className="p-3">{a.governorate ?? "—"}</td>
                     <td className="p-3">
                       {a.cv_url ? (
-                        <button
-                          onClick={() => downloadCv(a.cv_url!)}
-                          className="text-[var(--color-primary)] font-bold hover:underline"
-                        >
-                          تحميل
-                        </button>
+                        <div className="flex flex-col items-start gap-1">
+                          <button
+                            onClick={() => downloadCv(a.id)}
+                            className="text-[var(--color-primary)] font-bold hover:underline"
+                          >
+                            تحميل
+                          </button>
+                          {a.cv_download_count > 0 && (
+                            <span className="text-[10px] text-[var(--color-muted)]">
+                              نُزّل {a.cv_download_count} مرة
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-[var(--color-muted)]">لم يرفع</span>
                       )}
