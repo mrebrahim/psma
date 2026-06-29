@@ -56,6 +56,9 @@ export default function Header() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-2">
+            <Link href="/applicants/login" className="btn-outline text-sm">
+              دخول المتقدمين
+            </Link>
             <Link href="/companies/login" className="btn-outline text-sm">
               دخول الشركات
             </Link>
