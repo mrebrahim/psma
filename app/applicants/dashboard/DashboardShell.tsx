@@ -113,7 +113,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const links = [
     { href: "/applicants/dashboard", label: "الرئيسية" },
     { href: "/applicants/dashboard/jobs", label: "الوظائف المرشّحة" },
-    { href: "/applicants/dashboard/profile", label: "بياناتي وتاجاتي" },
+    { href: "/applicants/dashboard/profile", label: "تاجاتي ومهاراتي" },
+    { href: "/applicants/dashboard/profile/experiences", label: "خبراتي وكورساتي" },
   ];
 
   return (

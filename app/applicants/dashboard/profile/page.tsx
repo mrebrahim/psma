@@ -118,10 +118,24 @@ export default function ProfileEditorPage() {
     setProfile({ ...profile, ...updates, completeness });
   }
 
+  async function rescore() {
+    if (!profile) return;
+    setSaving(true); setInfo(null); setError(null);
+    const { data, error: err } = await supabase.rpc("rescore_profile", { p_profile_id: profile.id });
+    setSaving(false);
+    if (err) return setError(err.message);
+    setInfo(`اتحدثت ${data ?? 0} ترشيحات لك ✓`);
+  }
+
   if (!profile) return <div className="text-[var(--color-muted)]">جارٍ التحميل...</div>;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center justify-end gap-2">
+        <button onClick={rescore} disabled={saving} className="btn-primary text-sm disabled:opacity-60">
+          {saving ? "جارٍ..." : "تحديث ترشيحاتي ↻"}
+        </button>
+      </div>
       <form onSubmit={saveProfile} className="card">
         <h2 className="font-extrabold text-xl text-[var(--color-primary)] mb-3">بياناتي الأساسية</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
